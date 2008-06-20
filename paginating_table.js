@@ -1,5 +1,5 @@
 //
-// new PaginatingTable( 'my_table', {
+// new PaginatingTable( 'my_table', 'ul_for_paginating', {
 //   per_page: 10,     // How many rows per page?
 //   current_page: 1,  // What page to start on when initialized
 //   offset_el: false, // What dom element to stick the offset in
@@ -7,7 +7,8 @@
 //   details: false    // Do we have hidden/collapsable rows?
 // });
 //
-// The above were the defaults. 
+// The above were the defaults.  You could also pass an array of paginators
+// instead of just one.
 //
 // Requires mootools Class, Array, Function, Element, Element.Selectors,
 // Element.Event, and you should probably get Window.DomReady if you're smart.
