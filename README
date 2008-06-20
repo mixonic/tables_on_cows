@@ -65,12 +65,12 @@ You could also pass an array of paginators instead of just a string.
 
 The formats sorted out of the box are:
 
-  * **strings**
-  * **numbers**
-  * **decimal currency** (12.34, 4.50)
-  * **dates** (YYYY-MM-DD, YYYY-M-D)
-  * **relative dates** (1 day ago, 38 years ago)
-  * **disk memory** (1.75 MB, 34 KB, 8 TB)
+  * strings
+  * numbers
+  * decimal currency (12.34, 4.50)
+  * dates (YYYY-MM-DD, YYYY-M-D)
+  * relative dates (1 day ago, 38 years ago)
+  * disk memory (1.75 MB, 34 KB, 8 TB)
 
 Adding a new conversion is pretty easy.  They look like this:
 
