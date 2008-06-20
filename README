@@ -1,4 +1,86 @@
-This script is a fast and slim table sort based on mootools.  It's based on these blog posts:
+This script is a fast and slim table sort and table pagination based on MooTools.  It's based on these blog posts:
 
-http://madhatted.com/2008/1/11/the-joy-of-a-minimal-complete-javascript-table-sort
-http://madhatted.com/2008/1/16/the-joy-of-an-optimized-complete-javascript-table-sort
+  http://madhatted.com/2008/1/11/the-joy-of-a-minimal-complete-javascript-table-sort
+  http://madhatted.com/2008/1/16/the-joy-of-an-optimized-complete-javascript-table-sort
+  http://madhatted.com/2008/6/20/the-joy-of-tables-on-cows
+
+A simple example:
+
+  new SortingTable( 'sort_table' );
+
+A complex example:
+
+  <ul id="sort_table_pagination"></ul>
+  Now showing items <span id="offset"></span> - <span id="cutoff"></span>
+  <table cellpadding="0" cellspacing="0" id="sort_this">
+    <thead>
+      <tr>
+        <th>a header</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>a value
+      </tr>
+      <tr>
+        <td>another value</td>
+      </tr>
+    </tbody>
+  </table>
+  <ul id="sort_table_bottom_pagination"></ul>
+  <script type="text/javascript">
+    new SortingTable( 'sort_table', {
+      paginator: new PaginatingTable( 'sort_table',
+                      ['sort_table_pagination', 'sort_table_bottom_pagination'],
+                      {
+                        per_page: 3,         // Only 3 items per page, please
+                        current_page: 2,     // Start on page 2
+                        offset_el: 'offset', // Use this id for offset numbers
+                        cutoff_el: 'cutoff'  // And this id for cutoffs
+                      }
+      )
+    });
+  </script>
+
+You could also use the 'details' setting to say you have expanding rows.  The defaults and options are:
+
+  new SortingTable( 'my_table', {
+    zebra: true,                        // Stripe the table, also on initialize
+    details: false,                     // Has details every other row
+    paginator: false,                   // Pass a paginator object
+    dont_sort_class: 'nosort',          // Class name on th's that don't sort
+    forward_sort_class: 'forward_sort', // Class applied to forward sort th's
+    reverse_sort_class: 'reverse_sort'  // Class applied to reverse sort th's
+  });
+
+  new PaginatingTable( 'my_table', 'ul_for_paginating', {
+    per_page: 10,     // How many rows per page?
+    current_page: 1,  // What page to start on when initialized
+    offset_el: false, // What dom element to stick the offset in
+    cutoff_el: false, // What dom element to stick the cutoff in
+    details: false    // Do we have hidden/collapsable rows?
+  });
+
+You could also pass an array of paginators instead of just a string.
+
+The formats sorted out of the box are:
+
+  * **strings**
+  * **numbers**
+  * **decimal currency** (12.34, 4.50)
+  * **dates** (YYYY-MM-DD, YYYY-M-D)
+  * **relative dates** (1 day ago, 38 years ago)
+  * **disk memory** (1.75 MB, 34 KB, 8 TB)
+
+Adding a new conversion is pretty easy.  They look like this:
+
+      // YYYY-MM-DD, YYYY-m-d
+      { matcher: /(\d{4})-(\d{1,2})-(\d{1,2})/,
+        conversion_function: function( row ) {
+          var cell = $(row.row.getElementsByTagName('td')[this.sort_column]).get('text');
+          cell = this.conversion_matcher.exec( cell );
+          return new Date(parseInt(cell[1]), parseInt(cell[2], 10) - 1, parseInt(cell[3], 10));
+        }
+      },
+
+And you add them to the conversion_filters array.
