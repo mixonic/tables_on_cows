@@ -16,31 +16,28 @@
 
 var PaginatingTable = new Class({
 
-  initialize: function( tbl, ids, options ) {
-    this.options = $merge({
-      per_page: 10,
-      current_page: 1,
-      offset_el: false,
-      cutoff_el: false,
-      details: false
-    }, options);
+  Implements: Options,
+  
+  options: {
+    per_page: 10,
+    current_page: 1,
+    offset_el: false,
+    cutoff_el: false,
+    details: false
+  },
+  
+  initialize: function( table, ids, options ) {
+    this.table = $(table);
+    this.setOptions(options);
     
-    this.table = $(tbl);
-    this.tbody = this.table.getElementsByTagName( 'tbody' )[0];
+    this.tbody = this.table.getElement('tbody');
     
     if (this.options.offset_el)
       this.options.offset_el = $(this.options.offset_el);
     if (this.options.cutoff_el)
       this.options.cutoff_el = $(this.options.cutoff_el);
 
-    this.paginators = [];
-    if ($type(ids) == 'array'){
-      $each(ids,function(id){
-        this.paginators.push( $(id) );
-      }.bind( this ));
-    } else {
-      this.paginators.push( $(ids) );
-    }
+    this.paginators = ($type(ids) == 'array') ? ids.map($) : [$(ids)];
 
     if (this.options.details) {
       this.options.per_page = this.options.per_page * 2
@@ -50,37 +47,26 @@ var PaginatingTable = new Class({
   },
 
   update_pages: function(){
-    this.pages = Math.ceil( this.tbody.getElementsByTagName('tr').length / this.options.per_page );
+    this.pages = Math.ceil( this.tbody.getChildren().length / this.options.per_page );
     this.create_pagination();
     this.to_page( 1 );
   },
 
   to_page: function( page_num ) {
-    page_num = parseInt( page_num );
+    page_num = page_num.toInt();
     if (page_num > this.pages || page_num < 1) return;
     this.current_page = page_num;
     this.low_limit  = this.options.per_page * ( this.current_page - 1 );
     this.high_limit = this.options.per_page * this.current_page;
-    var trs = this.tbody.getElementsByTagName('tr')
+    var trs = this.tbody.getChildren();
     if (trs.length < this.high_limit) this.high_limit = trs.length;
-    for (var index=0; index < trs.length; index++) {
-      if ( this.low_limit  <= index &&
-           this.high_limit > index    ) {
-        trs[index].style.display = '';
-      } else {
-        trs[index].style.display = 'none';
-      }
+    for (var i = 0, j = trs.length; i < j; i++) {
+      trs[i].style.display = (this.low_limit  <= i && this.high_limit > i) ? '' : 'none';
     }
     this.paginators.each(function(paginator){
-      var as = paginator.getElementsByTagName( 'a' );
-      for (var index=0;index < as.length;index++){
-        if (index == this.current_page) {
-          as[index].addClass('currentPage');
-        } else {
-          as[index].removeClass('currentPage');
-        }
-      }
-    }.bind( this ));
+      var as = paginator.getElements('a').removeClass('currentPage');
+      as[this.current_page].addClass('currentPage');
+    }, this);
     if (this.options.offset_el)
       this.options.offset_el.set('text', Math.ceil( this.low_limit / ( this.options.details ? 2 : 1 ) + 1 ) );
     if (this.options.cutoff_el)

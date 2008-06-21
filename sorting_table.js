@@ -18,48 +18,52 @@
 
 var SortingTable = new Class({
 
+  Implements: Options,
+  
+  options: {
+    zebra: true,
+    details: false,
+    paginator: false,
+    dont_sort_class: 'nosort',
+    forward_sort_class: 'forward_sort',
+    reverse_sort_class: 'reverse_sort'
+  },
+
   initialize: function( table, options ) {
-    this.options = $merge({
-      zebra: true,
-      details: false,
-      paginator: false,
-      dont_sort_class: 'nosort',
-      forward_sort_class: 'forward_sort',
-      reverse_sort_class: 'reverse_sort'
-    }, options);
-    
     this.table = $(table);
-    this.tbody = $(this.table.getElementsByTagName('tbody')[0]);
+    this.setOptions(options);
+    
+    this.tbody = this.table.getElement('tbody');
     if (this.options.zebra) {
-      SortingTable.stripe_table( this.tbody.getElementsByTagName( 'tr' ) );
+      SortingTable.stripe_table(this.tbody.getChildren());
     }
 
-    this.headers = new Hash;
-    var thead = $(this.table.getElementsByTagName('thead')[0]);
-    this.headers = thead.getElementsByTagName('tr')[0].getElementsByTagName('th');
-    $each(this.headers, function( header, index ) {
-      var header = $(header);
+    this.headers = this.table.getElement('thead').getElements('th');
+    this.headers.each(function( header, index ) {
       if (header.hasClass( this.options.dont_sort_class )) { return }
       header.store( 'column', index )
       header.addEvent( 'mousedown', function(evt){
-        var evt = new Event(evt);
         this.sort_by_header( evt.target );
         if ( this.options.paginator) this.options.paginator.to_page( 1 );
       }.bind( this ) );
-    }.bind( this ) );
+    }, this);
 
     this.load_conversions();
   },
 
   sort_by_header: function( header ){
-    this.rows = new Array;
-    var trs = this.tbody.getElements( 'tr' );
+    var rows = [];
+    
+    var before = this.tbody.getPrevious();
+    this.tbody.dispose();
+    
+    var trs = this.tbody.getChildren();
     while ( row = trs.shift() ) {
       row = { row: row.dispose() };
       if ( this.options.details ) {
         row.detail = trs.shift().dispose();
       }
-      this.rows.unshift( row );
+      rows.unshift( row );
     }
     
     if ( this.sort_column >= 0 &&
@@ -73,19 +77,19 @@ var SortingTable = new Class({
         header.addClass( this.options.reverse_sort_class );
       }
     } else {
-      $each(this.headers, function(h){
+      this.headers.each(function(h){
         h.removeClass( this.options.forward_sort_class );
         h.removeClass( this.options.reverse_sort_class );
-      }.bind( this ));
+      }, this);
       this.sort_column = header.retrieve('column');
       if (header.retrieve('conversion_function')) {
         this.conversion_matcher = header.retrieve('conversion_matcher');
         this.conversion_function = header.retrieve('conversion_function');
       } else {
         this.conversion_function = false;
-        this.rows.some(function(row){
+        rows.some(function(row){
           var to_match = $(row.row.getElementsByTagName('td')[this.sort_column]).get('text');
-          if (to_match == ''){ return false }
+          if (to_match == '') return false;
           this.conversions.some(function(conversion){
             if (conversion.matcher.test( to_match )){
               this.conversion_matcher = conversion.matcher;
@@ -93,38 +97,34 @@ var SortingTable = new Class({
               return true;
             }
             return false;
-          }.bind( this ));
-          if (this.conversion_function){ return true; }
-          return false;
-        }.bind( this ));
-        header.store('conversion_function', this.conversion_function.bind( this ) );
+          }, this);
+          return !!(this.conversion_function);
+        }, this);
+        header.store('conversion_function', this.conversion_function );
         header.store('conversion_matcher', this.conversion_matcher );
       }
       header.addClass( this.options.forward_sort_class );
-      this.rows.each(function(row){
-        row.compare_value = this.conversion_function( row );
-        row.toString = function(){ return this.compare_value }
-      }.bind( this ));
-      this.rows.sort();
+      rows.each(function(row){
+        var compare_value = this.conversion_function( row );
+        row.toString = function(){
+          return compare_value;
+        };
+      }, this);
+      rows.sort();
     }
 
     var index = 0;
-    while ( row = this.rows.shift() ) {
-      row.row.injectInside( this.tbody );
-      if (row.detail){ row.detail.injectInside( this.tbody ) };
+    while ( row = rows.shift() ) {
+      this.tbody.appendChild(row.row);
+      if (row.detail) this.tbody.appendChild(row.detail);
       if ( this.options.zebra ) {
-        row.row.className = row.row.className.replace( this.removeAltClassRe, '$1').clean();
-        if (row.detail){
-          row.detail.className = row.detail.className.replace( this.removeAltClassRe, '$1').clean();
-        }
-        if ( ( index % 2 ) == 0 ) {
-          row.row.addClass( 'alt' );
-          if (row.detail){ row.detail.addClass( 'alt' ); }
-        }
+        var method = (index % 2) ? 'removeClass' : 'addClass';
+      row.row[method]( 'alt' );
+        if (row.detail) row.detail[method]( 'alt' );
       }
       index++;
     }
-    this.rows = false;
+   this.tbody.inject(before, 'after');
   },
 
   load_conversions: function() {
@@ -206,19 +206,11 @@ var SortingTable = new Class({
 
 });
 
-SortingTable.removeAltClassRe = new RegExp('(^|\\s)alt(?:\\s|$)');
-SortingTable.implement({ removeAltClassRe: SortingTable.removeAltClassRe });
-
 SortingTable.stripe_table = function ( tr_elements  ) {
   var counter = 0;
-  $$( tr_elements ).each( function( tr ) {
-    if ( !tr.hasClass('collapsed') ) {
-      counter++;
-    }
-    tr.className = tr.className.replace( this.removeAltClassRe, '$1').clean();
-    if ( !(( counter % 2 ) == 0) ) {
-      tr.addClass( 'alt' );   
-    }
-  }.bind( this ));
+  tr_elements.each( function( tr ) {
+    if ( !tr.hasClass('collapsed') ) counter++;
+  tr[(counter % 2) ? 'addClass' : 'removeClass']( 'alt' );
+  });
 }
 
