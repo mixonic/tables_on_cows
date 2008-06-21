@@ -118,9 +118,13 @@ var SortingTable = new Class({
       this.tbody.appendChild(row.row);
       if (row.detail) this.tbody.appendChild(row.detail);
       if ( this.options.zebra ) {
-        var method = (index % 2) ? 'removeClass' : 'addClass';
-      row.row[method]( 'alt' );
-        if (row.detail) row.detail[method]( 'alt' );
+        row.row.className = row.row.className.replace( this.removeAltClassRe, '$1').clean();
+        if (row.detail)
+          row.detail.className = row.detail.className.replace( this.removeAltClassRe, '$1').clean();
+        if (index % 2) {
+          row.row.addClass( 'alt' ); 
+          if (row.detail) row.detail.addClass( 'alt' );
+        }
       }
       index++;
     }
@@ -206,11 +210,15 @@ var SortingTable = new Class({
 
 });
 
+SortingTable.removeAltClassRe = new RegExp('(^|\\s)alt(?:\\s|$)');
+SortingTable.implement({ removeAltClassRe: SortingTable.removeAltClassRe });
+
 SortingTable.stripe_table = function ( tr_elements  ) {
   var counter = 0;
   tr_elements.each( function( tr ) {
     if ( !tr.hasClass('collapsed') ) counter++;
-  tr[(counter % 2) ? 'addClass' : 'removeClass']( 'alt' );
+    tr.className = tr.className.replace( this.removeAltClassRe, '$1').clean();
+    if (counter % 2) tr.addClass( 'alt' );
   });
 }
 
