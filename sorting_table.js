@@ -189,7 +189,9 @@ var SortingTable = new Class({
         conversion_function: function( row ) {
           var cell = $(row.row.getElementsByTagName('td')[this.sort_column]).get('text');
           cell = this.conversion_matcher.exec( cell );
-          return new Date(parseInt(cell[1]), parseInt(cell[2], 10) - 1, parseInt(cell[3], 10));
+          return cell[1]+
+                 '00'.substr(0,2-cell[2].length).concat(cell[2])+
+                 '00'.substr(0,2-cell[3].length).concat(cell[3]);
         }
       },
       // Numbers
