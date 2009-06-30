@@ -3,6 +3,7 @@
 //   zebra: true,                        // Stripe the table, also on initialize
 //   details: false,                     // Has details every other row
 //   paginator: false,                   // Pass a paginator object
+//   onSorted: function(){},             // Callback to run after sort
 //   dont_sort_class: 'nosort',          // Class name on th's that don't sort
 //   forward_sort_class: 'forward_sort', // Class applied to forward sort th's
 //   reverse_sort_class: 'reverse_sort'  // Class applied to reverse sort th's
@@ -24,6 +25,7 @@ var SortingTable = new Class({
     zebra: true,
     details: false,
     paginator: false,
+    onSorted: $empty,
     dont_sort_class: 'nosort',
     forward_sort_class: 'forward_sort',
     reverse_sort_class: 'reverse_sort'
@@ -129,6 +131,7 @@ var SortingTable = new Class({
       index++;
     }
    this.tbody.inject(before, 'after');
+   this.fireEvent('sorted', this);
   },
 
   load_conversions: function() {
@@ -223,4 +226,3 @@ SortingTable.stripe_table = function ( tr_elements  ) {
     if (counter % 2) tr.addClass( 'alt' );
   });
 }
-
