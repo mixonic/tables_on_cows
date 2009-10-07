@@ -19,7 +19,7 @@
 
 var SortingTable = new Class({
 
-  Implements: Options,
+  Implements: [Options, Events],
   
   options: {
     zebra: true,
