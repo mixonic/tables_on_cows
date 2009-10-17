@@ -179,11 +179,13 @@ var SortingTable = new Class({
           return sort_val.concat('00'.substr(0,2-cell[1].length).concat(cell[1]));
         }
       },
-      // Currency
-      { matcher: /((\d{1}\.\d{2}|\d{2}\.\d{2}|\d{3}\.\d{2}|\d{4}\.\d{2}|\d{5}\.\d{2}|\d{6}\.\d{2}))/,
+      // Currency, or floating point with precision up to .00
+      { matcher:  /^[^\d]?((\d+|,\d{3})*(\.\d{1,2})?)$/,
         conversion_function: function( row ) {
           var cell = $(row.row.getElementsByTagName('td')[this.sort_column]).get('text');
-          cell = cell.replace(/[^\d]/g, "");
+          cell = parseFloat(cell.replace(/^[^\d]/, "").replace(/,/g, ""));
+          if (isNaN(cell)) { cell = 0; }
+          cell = Math.round((cell * 100)).toString();
           return '00000000000000000000000000000000'.substr(0,32-cell.length).concat(cell);
         }
       },
