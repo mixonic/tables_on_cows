@@ -193,10 +193,14 @@ var SortingTable = new Class({
       { matcher: /(\d{4})-(\d{1,2})-(\d{1,2})/,
         conversion_function: function( row ) {
           var cell = $(row.row.getElementsByTagName('td')[this.sort_column]).get('text');
-          cell = this.conversion_matcher.exec( cell );
-          return cell[1]+
-                 '00'.substr(0,2-cell[2].length).concat(cell[2])+
-                 '00'.substr(0,2-cell[3].length).concat(cell[3]);
+          if (cell && cell.length > 0) {
+            cell = this.conversion_matcher.exec( cell );
+            return cell[1]+
+                   '00'.substr(0,2-cell[2].length).concat(cell[2])+
+                   '00'.substr(0,2-cell[3].length).concat(cell[3]);
+          } else {
+            return '';
+          }
         }
       },
       // Numbers
